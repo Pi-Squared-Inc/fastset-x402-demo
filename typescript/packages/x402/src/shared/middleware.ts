@@ -14,6 +14,7 @@ import { RoutesConfig } from "../types";
 import { safeBase64Decode } from "./base64";
 import { getUsdcChainConfigForChain } from "./evm";
 import { getNetworkId } from "./network";
+import { isFastSetNetwork } from "../types/shared/network";
 
 /**
  * Computes the route patterns for the given routes config
@@ -40,14 +41,13 @@ export function computeRoutePatterns(routes: RoutesConfig): RoutePattern[] {
     return {
       verb: verb.toUpperCase(),
       pattern: new RegExp(
-        `^${
-          path
-            // First escape all special regex characters except * and []
-            .replace(/[$()+.?^{|}]/g, "\\$&")
-            // Then handle our special pattern characters
-            .replace(/\*/g, ".*?") // Make wildcard non-greedy and optional
-            .replace(/\[([^\]]+)\]/g, "[^/]+") // Convert [param] to regex capture
-            .replace(/\//g, "\\/") // Escape slashes
+        `^${path
+          // First escape all special regex characters except * and []
+          .replace(/[$()+.?^{|}]/g, "\\$&")
+          // Then handle our special pattern characters
+          .replace(/\*/g, ".*?") // Make wildcard non-greedy and optional
+          .replace(/\[([^\]]+)\]/g, "[^/]+") // Convert [param] to regex capture
+          .replace(/\//g, "\\/") // Escape slashes
         }$`,
         "i",
       ),
@@ -122,19 +122,35 @@ export function findMatchingRoute(
  * @returns The default asset
  */
 export function getDefaultAsset(network: Network) {
-  const chainId = getNetworkId(network);
-  const usdc = getUsdcChainConfigForChain(chainId);
-  if (!usdc) {
-    throw new Error(`Unable to get default asset on ${network}`);
+  // FastSet networks use native SET token
+  if (isFastSetNetwork(network)) {
+    return {
+      address: "0xfa575e7000000000000000000000000000000000000000000000000000000000" as Address,
+      decimals: 0,
+      eip712: undefined, // FastSet doesn't use EIP-712
+    };
   }
-  return {
-    address: usdc.usdcAddress,
-    decimals: 6,
-    eip712: {
-      name: usdc.usdcName,
-      version: "2",
-    },
-  };
+
+  const chainId = getNetworkId(network);
+
+  // For EVM networks, get USDC config
+  if (typeof chainId === "number") {
+    const usdc = getUsdcChainConfigForChain(chainId);
+    if (!usdc) {
+      throw new Error(`Unable to get default asset on ${network}`);
+    }
+    return {
+      address: usdc.usdcAddress,
+      decimals: 6,
+      eip712: {
+        name: usdc.usdcName,
+        version: "2",
+      },
+    };
+  }
+
+  // For other networks (Solana, etc.), throw error as they need explicit asset config
+  throw new Error(`Unable to get default asset on ${network}`);
 }
 
 /**

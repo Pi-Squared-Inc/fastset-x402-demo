@@ -80,7 +80,11 @@ export async function verify<
   let erc20Address: Address;
   let version: string;
   try {
-    chainId = getNetworkId(payload.network);
+    const networkId = getNetworkId(payload.network);
+    if (typeof networkId !== "number") {
+      throw new Error(`Invalid network ID type for EVM: ${typeof networkId}`);
+    }
+    chainId = networkId;
     name = paymentRequirements.extra?.name ?? config[chainId.toString()].usdcName;
     erc20Address = paymentRequirements.asset as Address;
     version = paymentRequirements.extra?.version ?? (await getVersion(client));

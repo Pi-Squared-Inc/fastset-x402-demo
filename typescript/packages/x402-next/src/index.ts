@@ -22,6 +22,7 @@ import {
   ERC20TokenAmount,
   SupportedEVMNetworks,
   SupportedSVMNetworks,
+  SupportedFastSetNetworks,
 } from "x402/types";
 import { useFacilitator } from "x402/verify";
 import { safeBase64Encode } from "x402/shared";
@@ -206,6 +207,32 @@ export function paymentMiddleware(
         extra: {
           feePayer,
         },
+      });
+    }
+    // fastset networks
+    else if (SupportedFastSetNetworks.includes(network as any)) {
+      // build the payment requirements for fastset
+      paymentRequirements.push({
+        scheme: "exact",
+        network,
+        maxAmountRequired,
+        resource: resourceUrl,
+        description: description ?? "",
+        mimeType: mimeType ?? "",
+        payTo: payTo, // FastSet address in bech32 format
+        maxTimeoutSeconds: maxTimeoutSeconds ?? 60,
+        asset: asset.address, // Native SET token or other FastSet asset
+        // TODO: Rename outputSchema to requestStructure
+        outputSchema: {
+          input: {
+            type: "http",
+            method,
+            discoverable: discoverable ?? true,
+            ...inputSchema,
+          },
+          output: outputSchema,
+        },
+        extra: undefined, // FastSet doesn't use extra fields like EVM or feePayer
       });
     } else {
       throw new Error(`Unsupported network: ${network}`);

@@ -1,18 +1,26 @@
-import { EvmNetworkToChainId, Network, SvmNetworkToChainId } from "../types/shared";
+import {
+  EvmNetworkToChainId,
+  Network,
+  SvmNetworkToChainId,
+  FastSetNetworkToCluster,
+} from "../types/shared";
 
 /**
  * Converts a network name to its corresponding chain ID
  *
  * @param network - The network name to convert to a chain ID
- * @returns The chain ID for the specified network
+ * @returns The chain ID for the specified network (number for EVM/SVM, string for FastSet)
  * @throws Error if the network is not supported
  */
-export function getNetworkId(network: Network): number {
+export function getNetworkId(network: Network): number | string {
   if (EvmNetworkToChainId.has(network)) {
     return EvmNetworkToChainId.get(network)!;
   }
   if (SvmNetworkToChainId.has(network)) {
     return SvmNetworkToChainId.get(network)!;
+  }
+  if (FastSetNetworkToCluster.has(network)) {
+    return FastSetNetworkToCluster.get(network)!;
   }
   throw new Error(`Unsupported network: ${network}`);
 }

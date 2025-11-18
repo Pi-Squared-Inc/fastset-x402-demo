@@ -1,6 +1,7 @@
 import { verify as verifyExactEvm, settle as settleExactEvm } from "../schemes/exact/evm";
 import { verify as verifyExactSvm, settle as settleExactSvm } from "../schemes/exact/svm";
-import { SupportedEVMNetworks, SupportedSVMNetworks } from "../types/shared";
+import { verify as verifyExactFastSet, settle as settleExactFastSet } from "../schemes/exact/fastset";
+import { SupportedEVMNetworks, SupportedSVMNetworks, SupportedFastSetNetworks } from "../types/shared";
 import { X402Config } from "../types/config";
 import {
   ConnectedClient as EvmConnectedClient,
@@ -57,6 +58,16 @@ export async function verify<
         config,
       );
     }
+
+    // fastset
+    if (SupportedFastSetNetworks.includes(paymentRequirements.network)) {
+      return await verifyExactFastSet(
+        client as ConnectedClient,
+        payload,
+        paymentRequirements,
+        config,
+      );
+    }
   }
 
   // unsupported scheme
@@ -100,6 +111,16 @@ export async function settle<transport extends Transport, chain extends Chain>(
     if (SupportedSVMNetworks.includes(paymentRequirements.network)) {
       return await settleExactSvm(
         client as TransactionSigner,
+        payload,
+        paymentRequirements,
+        config,
+      );
+    }
+
+    // fastset
+    if (SupportedFastSetNetworks.includes(paymentRequirements.network)) {
+      return await settleExactFastSet(
+        client, // FastSet accepts any client type
         payload,
         paymentRequirements,
         config,

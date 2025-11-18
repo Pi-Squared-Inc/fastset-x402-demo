@@ -33,6 +33,10 @@ function PaymentForm({
     paymentRequirements
   );
 
+  const networkId = getNetworkId(paymentRequirements.network);
+  // This page is EVM-specific, so chainId must be a number
+  const chainId = typeof networkId === "number" ? networkId : parseInt(String(networkId), 10);
+
   const eip712Data = {
     types: {
       TransferWithAuthorization: [
@@ -47,7 +51,7 @@ function PaymentForm({
     domain: {
       name: paymentRequirements.extra?.name,
       version: paymentRequirements.extra?.version,
-      chainId: getNetworkId(paymentRequirements.network),
+      chainId,
       verifyingContract: paymentRequirements.asset as `0x${string}`,
     },
     primaryType: "TransferWithAuthorization" as const,

@@ -18,6 +18,7 @@ export const NetworkSchema = z.enum([
   "story",
   "educhain",
   "skale-base-sepolia",
+  "fastset-devnet",
 ]);
 export type Network = z.infer<typeof NetworkSchema>;
 
@@ -64,9 +65,28 @@ export const SvmNetworkToChainId = new Map<Network, number>([
   ["solana", 101],
 ]);
 
+// fastset
+export const SupportedFastSetNetworks: Network[] = ["fastset-devnet"];
+export const FastSetNetworkToCluster = new Map<Network, string>([
+  ["fastset-devnet", "devnet"],
+]);
+
 export const ChainIdToNetwork = Object.fromEntries(
   [...SupportedEVMNetworks, ...SupportedSVMNetworks].map(network => [
     EvmNetworkToChainId.get(network),
     network,
   ]),
 ) as Record<number, Network>;
+
+// Utility functions for network type checking
+export const isEVMNetwork = (network: Network): boolean => {
+  return SupportedEVMNetworks.includes(network);
+};
+
+export const isSVMNetwork = (network: Network): boolean => {
+  return SupportedSVMNetworks.includes(network);
+};
+
+export const isFastSetNetwork = (network: Network): boolean => {
+  return SupportedFastSetNetworks.includes(network);
+};

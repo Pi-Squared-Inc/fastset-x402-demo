@@ -1,6 +1,7 @@
 import { Network, PaymentRequirements } from "../types";
 import { getUsdcChainConfigForChain } from "../shared/evm";
 import { getNetworkId } from "../shared/network";
+import { isEVMNetwork } from "../types/shared/network";
 
 /**
  * Default selector for payment requirements.
@@ -23,10 +24,18 @@ export function selectPaymentRequirements(paymentRequirements: PaymentRequiremen
     return isExpectedScheme && isExpectedChain;
   });
 
-  // Filter down to USDC requirements
+  // Filter down to USDC requirements (only for EVM networks)
   const usdcRequirements = broadlyAcceptedPaymentRequirements.filter(requirement => {
+    // Skip non-EVM networks (Solana, FastSet, etc.)
+    if (!isEVMNetwork(requirement.network)) {
+      return false;
+    }
     // If the address is a USDC address, we return it.
-    return requirement.asset === getUsdcChainConfigForChain(getNetworkId(requirement.network))?.usdcAddress;
+    const networkId = getNetworkId(requirement.network);
+    if (typeof networkId !== "number") {
+      return false;
+    }
+    return requirement.asset === getUsdcChainConfigForChain(networkId)?.usdcAddress;
   });
 
   // Prioritize USDC requirements if available

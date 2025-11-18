@@ -11,6 +11,7 @@ import {
   createSigner,
   SupportedEVMNetworks,
   SupportedSVMNetworks,
+  SupportedFastSetNetworks,
   Signer,
   ConnectedClient,
   SupportedPaymentKind,
@@ -23,9 +24,10 @@ config();
 const EVM_PRIVATE_KEY = process.env.EVM_PRIVATE_KEY || "";
 const SVM_PRIVATE_KEY = process.env.SVM_PRIVATE_KEY || "";
 const SVM_RPC_URL = process.env.SVM_RPC_URL || "";
+const ENABLE_FASTSET = process.env.ENABLE_FASTSET !== "false"; // Enable by default
 
-if (!EVM_PRIVATE_KEY && !SVM_PRIVATE_KEY) {
-  console.error("Missing required environment variables");
+if (!EVM_PRIVATE_KEY && !SVM_PRIVATE_KEY && !ENABLE_FASTSET) {
+  console.error("Missing required environment variables: Need at least one of EVM_PRIVATE_KEY, SVM_PRIVATE_KEY, or ENABLE_FASTSET=true");
   process.exit(1);
 }
 
@@ -66,6 +68,11 @@ app.post("/verify", async (req: Request, res: Response) => {
     const paymentRequirements = PaymentRequirementsSchema.parse(body.paymentRequirements);
     const paymentPayload = PaymentPayloadSchema.parse(body.paymentPayload);
 
+    console.log("[FACILITATOR] Received payment requirements:", paymentRequirements);
+    console.log("[FACILITATOR] Network:", paymentRequirements.network);
+    console.log("[FACILITATOR] SupportedFastSetNetworks:", SupportedFastSetNetworks);
+    console.log("[FACILITATOR] Is FastSet network?", SupportedFastSetNetworks.includes(paymentRequirements.network as any));
+
     // use the correct client/signer based on the requested network
     // svm verify requires a Signer because it signs & simulates the txn
     let client: Signer | ConnectedClient;
@@ -73,6 +80,8 @@ app.post("/verify", async (req: Request, res: Response) => {
       client = createConnectedClient(paymentRequirements.network);
     } else if (SupportedSVMNetworks.includes(paymentRequirements.network)) {
       client = await createSigner(paymentRequirements.network, SVM_PRIVATE_KEY);
+    } else if (SupportedFastSetNetworks.includes(paymentRequirements.network as any)) {
+      client = createConnectedClient(paymentRequirements.network);
     } else {
       throw new Error("Invalid network");
     }
@@ -123,6 +132,16 @@ app.get("/supported", async (req: Request, res: Response) => {
       },
     });
   }
+
+  // fastset - no private key needed, transactions are already settled on-chain
+  if (ENABLE_FASTSET) {
+    kinds.push({
+      x402Version: 1,
+      scheme: "exact",
+      network: "fastset-devnet",
+    });
+  }
+
   res.json({
     kinds,
   });
@@ -140,6 +159,10 @@ app.post("/settle", async (req: Request, res: Response) => {
       signer = await createSigner(paymentRequirements.network, EVM_PRIVATE_KEY);
     } else if (SupportedSVMNetworks.includes(paymentRequirements.network)) {
       signer = await createSigner(paymentRequirements.network, SVM_PRIVATE_KEY);
+    } else if (SupportedFastSetNetworks.includes(paymentRequirements.network as any)) {
+      // FastSet doesn't need a signer - transactions are already settled on-chain
+      // We just need to pass a dummy signer for the interface, but settle() won't use it
+      signer = { address: "", network: paymentRequirements.network } as Signer;
     } else {
       throw new Error("Invalid network");
     }

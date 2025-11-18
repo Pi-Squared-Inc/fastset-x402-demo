@@ -1,9 +1,10 @@
 import * as evm from "./evm/wallet";
 import * as svm from "../../shared/svm/wallet";
-import { SupportedEVMNetworks, SupportedSVMNetworks } from "./network";
+import { SupportedEVMNetworks, SupportedSVMNetworks, SupportedFastSetNetworks } from "./network";
+import { createFastSetConnectedClient, type FastSetConnectedClient } from "./fastset";
 import { Hex } from "viem";
 
-export type ConnectedClient = evm.ConnectedClient | svm.SvmConnectedClient;
+export type ConnectedClient = evm.ConnectedClient | svm.SvmConnectedClient | FastSetConnectedClient;
 export type Signer = evm.EvmSigner | svm.SvmSigner;
 export type MultiNetworkSigner = { evm: evm.EvmSigner; svm: svm.SvmSigner };
 
@@ -20,6 +21,10 @@ export function createConnectedClient(network: string): ConnectedClient {
 
   if (SupportedSVMNetworks.find(n => n === network)) {
     return svm.createSvmConnectedClient(network);
+  }
+
+  if (SupportedFastSetNetworks.find(n => n === network)) {
+    return createFastSetConnectedClient(network);
   }
 
   throw new Error(`Unsupported network: ${network}`);

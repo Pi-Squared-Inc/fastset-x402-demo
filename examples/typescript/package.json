@@ -19,5 +19,9 @@
     "tsup": "^8.4.0",
     "turbo": "^2.5.0",
     "typescript": "^5.8.3"
+  },
+  "dependencies": {
+    "fastestsmallesttextencoderdecoder": "^1.0.22",
+    "ws": "^8.18.3"
   }
 }

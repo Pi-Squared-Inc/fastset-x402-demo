@@ -30,7 +30,11 @@ export async function signAuthorization<transport extends Transport, chain exten
   { from, to, value, validAfter, validBefore, nonce }: ExactEvmPayloadAuthorization,
   { asset, network, extra }: PaymentRequirements,
 ): Promise<{ signature: Hex }> {
-  const chainId = getNetworkId(network);
+  const networkId = getNetworkId(network);
+  if (typeof networkId !== "number") {
+    throw new Error(`Invalid network ID type for EVM signing: ${typeof networkId}`);
+  }
+  const chainId = networkId;
   const name = extra?.name;
   const version = extra?.version;
 
@@ -76,10 +80,10 @@ export async function signAuthorization<transport extends Transport, chain exten
 export function createNonce(): Hex {
   const cryptoObj =
     typeof globalThis.crypto !== "undefined" &&
-    typeof globalThis.crypto.getRandomValues === "function"
+      typeof globalThis.crypto.getRandomValues === "function"
       ? globalThis.crypto
       : // Dynamic require is needed to support node.js
-        // eslint-disable-next-line @typescript-eslint/no-require-imports
-        require("crypto").webcrypto;
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      require("crypto").webcrypto;
   return toHex(cryptoObj.getRandomValues(new Uint8Array(32)));
 }

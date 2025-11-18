@@ -1,9 +1,10 @@
 import { selectPaymentRequirements } from "../../client";
 import type { PaymentRequirements } from "../../types/verify";
-import { Network, SupportedEVMNetworks, SupportedSVMNetworks } from "../../types/shared";
+import { Network, SupportedEVMNetworks, SupportedSVMNetworks, SupportedFastSetNetworks } from "../../types/shared";
 
 const EVM_TESTNETS = new Set<Network>(["base-sepolia"]);
 const SVM_TESTNETS = new Set<Network>(["solana-devnet"]);
+const FASTSET_TESTNETS = new Set<Network>(["fastset-devnet"]);
 
 /**
  * Normalizes the payment requirements into an array.
@@ -28,7 +29,7 @@ export function normalizePaymentRequirements(
  */
 export function getPreferredNetworks(testnet: boolean): Network[] {
   if (testnet) {
-    return ["base-sepolia", "solana-devnet"];
+    return ["base-sepolia", "solana-devnet", "fastset-devnet"];
   }
   return ["base", "solana"];
 }
@@ -61,13 +62,27 @@ export function isEvmNetwork(network: string): network is Network {
 }
 
 /**
- * Determines if the provided network is an SVM network.
+ * Determines if the provided network is a Solana (SVM) network.
  *
  * @param network - The network to check.
  * @returns True if the network is SVM based.
  */
 export function isSvmNetwork(network: string): network is Network {
   return SupportedSVMNetworks.includes(network as Network);
+}
+
+/**
+ * Determines if the provided network is a FastSet network.
+ *
+ * @param network - The network to check.
+ * @returns True if the network is FastSet based.
+ */
+export function isFastSetNetwork(network: string): network is Network {
+  console.log("[PAYWALL-UTILS] isFastSetNetwork check:", network);
+  console.log("[PAYWALL-UTILS] SupportedFastSetNetworks:", SupportedFastSetNetworks);
+  const result = SupportedFastSetNetworks.includes(network as Network);
+  console.log("[PAYWALL-UTILS] isFastSetNetwork result:", result);
+  return result;
 }
 
 /**
@@ -86,6 +101,8 @@ export function getNetworkDisplayName(network: Network): string {
       return "Solana";
     case "solana-devnet":
       return "Solana Devnet";
+    case "fastset-devnet":
+      return "FastSet Devnet";
     default:
       return network;
   }
@@ -98,5 +115,5 @@ export function getNetworkDisplayName(network: Network): string {
  * @returns True if the network is a recognized testnet.
  */
 export function isTestnetNetwork(network: Network): boolean {
-  return EVM_TESTNETS.has(network) || SVM_TESTNETS.has(network);
+  return EVM_TESTNETS.has(network) || SVM_TESTNETS.has(network) || FASTSET_TESTNETS.has(network);
 }
