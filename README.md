@@ -94,182 +94,211 @@ The following outlines the flow of a payment using the `x402` protocol. Note tha
 
 12. `Resource server` returns a `200 OK` response to the `Client` with the resource they requested as the body of the HTTP response, and a `X-PAYMENT-RESPONSE` header containing the `Settlement Response` as Base64 encoded JSON if the payment was executed successfully.
 
-### Type Specifications
+## Getting Started with FastSet Demo
 
-#### Data types
+Follow these step-by-step instructions to set up and run the x402 demo with FastSet network support.
 
-**Payment Required Response**
+### Prerequisites
 
-```json5
-{
-  // Version of the x402 payment protocol
-  x402Version: int,
+Before you begin, ensure you have the following installed:
 
-  // List of payment requirements that the resource server accepts. A resource server may accept on multiple chains, or in multiple currencies.
-  accepts: [paymentRequirements]
+- **Node.js** v20 or higher (install via [nvm](https://github.com/nvm-sh/nvm))
+- **pnpm** v10 or higher (install via [pnpm.io/installation](https://pnpm.io/installation))
+- **FastSet Wallet Extension** ([Chrome Web Store](https://chromewebstore.google.com/detail/fastset-wallet/ghibjknldlhfffnckpencpcjbhefblbe)) - Required for making FastSet payments
+- A FastSet wallet address (bech32 format, e.g., `set1...`) to receive payments
 
-  // Message from the resource server to the client to communicate errors in processing payment
-  error: string
-}
+### Step 1: Clone and Install Dependencies
+
+1. Navigate to the project root directory:
+```bash
+cd fastset-x402-demo
 ```
 
-**paymentRequirements**
-
-```json5
-{
-  // Scheme of the payment protocol to use
-  scheme: string;
-
-  // Network of the blockchain to send payment on
-  network: string;
-
-  // Maximum amount required to pay for the resource in atomic units of the asset
-  maxAmountRequired: uint256 as string;
-
-  // URL of resource to pay for
-  resource: string;
-
-  // Description of the resource
-  description: string;
-
-  // MIME type of the resource response
-  mimeType: string;
-
-  // Output schema of the resource response
-  outputSchema?: object | null;
-
-  // Address to pay value to
-  payTo: string;
-
-  // Maximum time in seconds for the resource server to respond
-  maxTimeoutSeconds: number;
-
-  // Address of the EIP-3009 compliant ERC20 contract
-  asset: string;
-
-  // Extra information about the payment details specific to the scheme
-  // For `exact` scheme on a EVM network, expects extra to contain the records `name` and `version` pertaining to asset
-  extra: object | null;
-}
+2. Navigate to the TypeScript examples directory and install all dependencies:
+```bash
+cd examples/typescript
+pnpm install
 ```
 
-**`Payment Payload`** (included as the `X-PAYMENT` header in base64 encoded json)
+3. Build the required packages. The `next-advanced` example may fail to build, but that's okay - you only need the core packages for the FastSet demo.
 
-```json5
-{
-  // Version of the x402 payment protocol
-  x402Version: number;
+   **Recommended: Build only the packages needed for FastSet demo:**
+   ```bash
+   pnpm turbo build --filter=x402 --filter=x402-next --filter=next-example --filter=facilitator-example
+   ```
+   
+### Step 2: Set Up the Facilitator Server
 
-  // scheme is the scheme value of the accepted `paymentRequirements` the client is using to pay
-  scheme: string;
+The facilitator server handles payment verification for FastSet payments. FastSet support is enabled by default and doesn't require a private key.
 
-  // network is the network id of the accepted `paymentRequirements` the client is using to pay
-  network: string;
-
-  // payload is scheme dependent
-  payload: <scheme dependent>;
-}
+1. Navigate to the facilitator directory:
+```bash
+cd facilitator
 ```
 
-#### Facilitator Types & Interface
+2. Copy the environment template and configure if needed:
+```bash
+cp .env-local .env
+```
 
-A `facilitator server` is a 3rd party service that can be used by a `resource server` to verify and settle payments, without the `resource server` needing to have access to a blockchain node or wallet.
+3. The facilitator supports FastSet by default. Your `.env` file should look like this:
+```bash
+# FastSet support is enabled by default (no private key needed)
+# ENABLE_FASTSET=true
+PORT=3002
+```
 
-**POST /verify**. Verify a payment with a supported scheme and network:
+**Note:** If you want to also support EVM or Solana networks, you can add:
+```bash
+EVM_PRIVATE_KEY=0xYourPrivateKey  # Optional, for EVM networks
+SVM_PRIVATE_KEY=base58EncodedSolanaPrivateKey  # Optional, for Solana networks
+```
 
-- Request body JSON:
-  ```json5
-  {
-    x402Version: number;
-    paymentHeader: string;
-    paymentRequirements: paymentRequirements;
-  }
-  ```
-- Response:
-  ```json5
-  {
-    isValid: boolean;
-    invalidReason: string | null;
-  }
-  ```
+4. Start the facilitator server:
+```bash
+pnpm dev
+```
 
-**POST /settle**. Settle a payment with a supported scheme and network:
+The facilitator will start on `http://localhost:3002`. Keep this terminal running.
 
-- Request body JSON:
+### Step 3: Run the Next.js Demo
 
-  ```json5
-  {
-    x402Version: number;
-    paymentHeader: string;
-    paymentRequirements: paymentRequirements;
-  }
-  ```
+```bash
+cd examples/typescript/fullstack/next
+cp .env.sample .env.local
+pnpm dev
+```
 
-- Response:
+**Note:** Update `RESOURCE_WALLET_ADDRESS` in `.env.local` with your FastSet wallet address. The app runs on `http://localhost:3000`.
 
-  ```json5
-  {
-    // Whether the payment was successful
-    success: boolean;
+### Step 4: Set Up FastSet Wallet
 
-    // Error message from the facilitator server
-    error: string | null;
+   - Open Chrome, Brave, or Edge browser
+   - Install the [FastSet Wallet Extension](https://chromewebstore.google.com/detail/fastset-wallet/ghibjknldlhfffnckpencpcjbhefblbe)
 
-    // Transaction hash of the settled payment
-    txHash: string | null;
+### Step 5: Test the Payment Flow
 
-    // Network id of the blockchain the payment was settled on
-    networkId: string | null;
-  }
-  ```
+1. **Open the Protected Route:**
+   - Navigate to `http://localhost:3000/protected` in your browser
+   - You should see a payment paywall requiring $100 (as configured in the middleware)
 
-**GET /supported**. Get supported payment schemes and networks:
+2. **Connect Your Wallet:**
+   - Click the "Connect FastSet Wallet" button
+   - Approve the connection request in your FastSet wallet extension
 
-- Response:
-  ```json5
-  {
-    kinds: [
-      {
-        "scheme": string,
-        "network": string,
-      }
-    ]
-  }
-  ```
+3. **Make a Payment:**
+   - Once connected, click "Pay Now"
+   - Review the payment details in the wallet popup
+   - Approve the payment in your FastSet wallet
+   - The payment will be executed immediately (FastSet uses sign-and-send)
 
-### Schemes
+4. **Access Protected Content:**
+   - After successful payment verification, you should see the protected content
+   - The payment certificate is verified by the facilitator server
 
-A scheme is a logical way of moving money.
 
-Blockchains allow for a large number of flexible ways to move money. To help facilitate an expanding number of payment use cases, the `x402` protocol is extensible to different ways of settling payments via its `scheme` field.
+## FastSet Network Integration
 
-Each payment scheme may have different operational functionality depending on what actions are necessary to fulfill the payment.
-For example `exact`, the first scheme shipping as part of the protocol, would have different behavior than `upto`. `exact` transfers a specific amount (ex: pay $1 to read an article), while a theoretical `upto` would transfer up to an amount, based on the resources consumed during a request (ex: generating tokens from an LLM).
+This is an integration for x402 with the Pi2 FastSet network. The x402 protocol enables blockchain-agnostic payments for protected content, and this integration extends support to [FastSet](https://pi2.network/fastset-network) alongside existing EVM networks (Base, Base Sepolia, Avalanche, Polygon, etc.) and SVM networks (Solana).
 
-See `specs/schemes` for more details on schemes, and see `specs/schemes/exact/scheme_exact_evm.md` to see the first proposed scheme for exact payment on EVM chains.
+### System Overview
 
-### Schemes vs Networks
+The integration works through several interconnected components that collectively enable FastSet payments within the x402 protocol framework:
 
-Because a scheme is a logical way of moving money, the way a scheme is implemented can be different for different blockchains. (ex: the way you need to implement `exact` on Ethereum is very different from the way you need to implement `exact` on Solana).
+**Technical Architecture**: The system extends the existing x402 multi-blockchain architecture through a discriminated union type system that provides compile-time safety and runtime validation for FastSet payments. The core integration leverages TypeScript's type system to define FastSet-specific interfaces (`FastSetAccountInfo`, `FastSetWallet`, `FastSetTransactionCertificate`, `ExactFastSetPayload`) that seamlessly integrate with the existing EVM (Base, Avalanche, Polygon, etc.) and SVM (Solana) type definitions, ensuring type safety from wallet interaction through facilitator verification.
 
-Clients and facilitators must explicitly support different `(scheme, network)` pairs in order to be able to create proper payloads and verify / settle payments.
+**Payment Flow Infrastructure**: The implementation follows a layered architecture where payment handler components orchestrate payment flows, and x402 clients translate between FastSet wallet extension APIs and protocol-compliant payment headers. The system uses a client pattern for wallet integration that mirrors existing EVM and SVM blockchain implementations, enabling consistent behavior across all supported networks while handling FastSet-specific connection management, account detection, and payment signing.
 
-## Running example
+**Protocol Integration**: At the protocol level, the system extends the x402 exact payment scheme to support FastSet payment headers through client-side payment creation and server-side facilitator verification. The middleware automatically detects FastSet payment requirements and activates the appropriate payment flow, while the facilitator infrastructure provides a framework for payment verification against FastSet using RPC calls to the FastSet proxy network. The configuration system uses environment-based payment requirements that define token addresses, amounts, recipient addresses, and network parameters, enabling flexible deployment across different environments.
 
-**Requirements:** Node.js v24 or higher
+**End-to-End Flow**: The complete payment process begins when users encounter x402-protected content with FastSet payment requirements. The system automatically renders FastSet as a payment option, manages wallet extension detection and connection, handles payment creation and signing through the FastSet wallet API, generates x402-compliant payment headers, submits payments for facilitator verification, and grants content access upon successful payment validation. This flow maintains consistency with existing blockchain implementations while accommodating FastSet-specific payment formats and wallet interaction patterns.
 
-1. From `examples/typescript` run `pnpm install` and `pnpm build` to ensure all dependent packages and examples are setup.
+### Implementation Details
 
-2. Select a server, i.e. express, and `cd` into that example. Add your server's ethereum address to get paid to into the `.env` file, and then run `pnpm dev` in that directory.
+In order to add FastSet support, we added the following:
 
-3. Select a client, i.e. axios, and `cd` into that example. Add your private key for the account making payments into the `.env` file, and then run `pnpm dev` in that directory.
+### 1. Add FastSet Types and Schemas
 
-You should see activities in the client terminal, which will display a weather report.
+The type system forms the foundation of FastSet integration by providing compile-time safety and runtime validation. These types define the interface between the FastSet wallet extension, the x402 protocol, and the application layer. The discriminated union approach ensures that FastSet payments are handled correctly throughout the system while maintaining compatibility with existing EVM and Solana payment types.
 
-## Running tests
+The schema definitions enable automatic validation of FastSet payment payloads, ensuring that malformed or incompatible payments are rejected early in the process. This type safety extends from the wallet interaction layer through to the facilitator verification process.
 
-1. Navigate to the typescript directory: `cd typescript`
-2. Install dependencies: `pnpm install`
-3. Run the unit tests: `pnpm test`
+**Files added:**
+- **Core FastSet types** in `typescript/packages/x402/src/types/shared/fastset.ts` - Defines `FastSetAccountInfo`, `FastSetTransactionCertificate`, `FastSetTransferParams`, `FastSetWallet`, and `FastSetConnectedClient` interfaces that represent the FastSet wallet extension API and RPC client
 
-This will run the unit tests for the x402 packages.
+**Files modified:**
+- **Payment payload types** in `typescript/packages/x402/src/types/verify/fastsetPayload.ts` - Defines `ExactFastSetPayload` structure for x402 protocol compatibility with payment certificates
+- **Network type extensions** in `typescript/packages/x402/src/types/shared/network.ts` - Adds FastSet as a supported network type (`fastset-devnet`) with network identification utilities and `SupportedFastSetNetworks` array
+- **Client type extensions** in `typescript/packages/x402/src/types/shared/wallet.ts` - Extends payment client interfaces to support FastSet wallet integration through `ConnectedClient` union type and `createConnectedClient` function
+- **x402 specification updates** in `typescript/packages/x402/src/types/verify/x402Specs.ts` - Updates discriminated union schemas to include FastSet payment payloads with bech32 address validation (`FastSetAddressRegex`)
+- **Type exports** in `typescript/packages/x402/src/types/shared/index.ts` and `typescript/packages/x402/src/types/verify/index.ts` - Added FastSet type exports
+
+### 2. Add FastSet Payment Client
+
+The client integration provides the core functionality for creating x402-compliant payment headers using FastSet wallets. This implementation handles the translation between FastSet wallet extension APIs and the x402 protocol requirements. The client manages payment creation, signing, and formatting to ensure compatibility with the x402 payment verification process.
+
+The integration extends the existing x402 client architecture to support FastSet alongside EVM and Solana clients. The payment header creation process maintains the same interface while handling FastSet-specific payment formats and wallet interaction patterns. FastSet payments are executed immediately when created (sign-and-send), so the client returns payment certificates rather than pending payment signatures.
+
+**Files added:**
+- **FastSet payment client** in `typescript/packages/x402/src/schemes/exact/fastset/client.ts` - Core client implementation that interfaces with FastSet wallet extension to create payments using the `transfer` method
+- **FastSet scheme index** in `typescript/packages/x402/src/schemes/exact/fastset/index.ts` - Exports FastSet client functions
+- **Shared client utilities** in `typescript/packages/x402/src/shared/client.ts` - Added `createFastSetClient` function to support FastSet payment clients
+
+**Files modified:**
+- **Payment header creation** in `typescript/packages/x402/src/client/createPaymentHeader.ts` - Updated to support FastSet networks and route to FastSet client
+- **Payment requirement selection** in `typescript/packages/x402/src/client/selectPaymentRequirements.ts` - Added FastSet network support
+- **Scheme integration** in `typescript/packages/x402/src/schemes/exact/index.ts` - Added FastSet exports to the exact payment scheme
+- **Shared exports** in `typescript/packages/x402/src/shared/index.ts` - Added FastSet client exports
+
+### 3. Add FastSet Paywall Component
+
+The FastSet paywall component integrates into the existing paywall system to provide a seamless payment experience. The `FastSetPaywall` component orchestrates the entire payment flow, from wallet connection through payment completion. It integrates with the FastSet wallet extension to manage connection state and provides user feedback throughout the payment process.
+
+The component follows the same interface pattern as existing EVM and Solana payment handlers, ensuring consistent behavior and user experience across all supported networks. Integration into the main paywall system enables automatic detection and rendering of FastSet payment options based on the configured payment requirements.
+
+**Files added:**
+- **FastSetPaywall** in `typescript/packages/x402/src/paywall/src/FastSetPaywall.tsx` - React component that handles FastSet payment flow including wallet connection, payment processing, and payment signing
+
+**Files modified:**
+- **Paywall integration** in `typescript/packages/x402/src/paywall/src/PaywallApp.tsx` - Updates main paywall component to detect and render FastSet payment options when FastSet payment requirements are present
+- **Paywall utilities** in `typescript/packages/x402/src/paywall/src/paywallUtils.ts` - Added `isFastSetNetwork` function and FastSet network detection logic
+- **Paywall template** in `typescript/packages/x402/src/paywall/gen/template.ts` - Updated to include FastSet paywall component
+
+### 4. Add Facilitator for FastSet
+
+The facilitator integration provides server-side infrastructure for FastSet payment verification and settlement, following the same architectural patterns as existing EVM and Solana facilitators.
+
+**Key Features:**
+- **Network Integration**: Direct RPC calls to FastSet proxy network (`https://proxy.fastset.xyz/`) using `set_proxy_getAccountInfo` method
+- **Payment Verification**: Validates payment nonce, sender/recipient addresses, and transfer amounts against network state by querying account information with certificate-by-nonce
+- **Simple Settlement**: Payments are settled in the wallet when created, so the settle function acts as a pass-through after verification
+
+**Files added:**
+- **FastSet verification** in `typescript/packages/x402/src/verify/fastset.ts` - Complete verification and settlement logic with RPC integration, including payment certificate validation using `set_proxy_getAccountInfo` RPC method
+- **Exact scheme facilitator** in `typescript/packages/x402/src/schemes/exact/fastset/facilitator.ts` - Facilitator routing for FastSet namespace within the exact payment scheme, implementing `verify` and `settle` functions
+
+**Files modified:**
+- **Core facilitator integration** in `typescript/packages/x402/src/facilitator/facilitator.ts` - Routes FastSet payments to appropriate handlers in the main `verify` and `settle` functions, adding FastSet network checks alongside EVM and SVM
+- **Verify exports** in `typescript/packages/x402/src/verify/index.ts` - Added FastSet verification exports
+- **Example facilitator** in `examples/typescript/facilitator/index.ts` - Updated to support FastSet network routing in the facilitator server, including FastSet network detection and client creation
+
+The implementation uses FastSet's certificate-based payment model, where payments are immediately executed and verified through RPC calls that check account state and payment certificates.
+
+### 5. Middleware and Configuration Support
+
+The middleware integration enables automatic FastSet payment flow activation when FastSet payment requirements are present. The system uses environment variables to configure facilitator endpoints, enabling flexible deployment across development, testing, and production environments.
+
+**Files modified:**
+- **Middleware support** in `typescript/packages/x402/src/shared/middleware.ts` - Added FastSet network detection, default asset configuration (native SET token with address `0xfa575e7000000000000000000000000000000000000000000000000000000000`), and FastSet-specific payment requirement handling
+- **Network utilities** in `typescript/packages/x402/src/shared/network.ts` - Added FastSet network mapping and cluster identification
+- **Next.js middleware** in `typescript/packages/x402-next/src/index.ts` - Extended payment middleware to support FastSet networks with bech32 address handling, including FastSet payment requirement construction
+- **Example configurations** in `examples/typescript/fullstack/next/README.md` and `examples/typescript/fullstack/next/middleware.ts` - Updated to demonstrate FastSet payment setup with devnet network and native SET token
+- **EVM utilities** in `typescript/packages/x402/src/schemes/exact/evm/utils/paymentUtils.ts` - Updated payment utilities to handle FastSet networks in payment parsing and formatting
+- **EVM facilitator** in `typescript/packages/x402/src/schemes/exact/evm/facilitator.ts` - Updated to exclude FastSet networks from EVM verification
+- **EVM signing** in `typescript/packages/x402/src/schemes/exact/evm/sign.ts` - Updated to exclude FastSet networks from EVM signing flow
+
+**Setup Requirements:** To test the integration, you need to configure payment requirements with FastSet network (`fastset-devnet`), use bech32 addresses for `payTo` fields, and ensure the facilitator supports FastSet verification. The system uses the `FACILITATOR_URL` environment variable to point to the facilitator instance for development and testing.
+
+### Implementation Status
+
+This integration provides a complete implementation for FastSet payments within the x402 protocol. The implementation includes client-side wallet integration, payment UI components, facilitator verification with RPC integration, and configuration management. The system successfully demonstrates end-to-end FastSet payment flow from wallet connection through payment completion and verification.

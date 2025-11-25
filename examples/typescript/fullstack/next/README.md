@@ -13,10 +13,10 @@ This is a Next.js application that demonstrates how to use the `x402-next` middl
 
 ## Setup
 
-1. Copy `.env-local` to `.env.local` and configure your network and wallet address:
+1. Copy `.env.sample` to `.env.local` and configure your network and wallet address:
 
 ```bash
-cp .env-local .env.local
+cp .env.sample .env.local
 ```
 
 The default configuration uses **FastSet Devnet**:
