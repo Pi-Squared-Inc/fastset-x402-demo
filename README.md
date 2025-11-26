@@ -122,9 +122,17 @@ pnpm install
 
 3. Build the required packages. The `next-advanced` example may fail to build, but that's okay - you only need the core packages for the FastSet demo.
 
+   Go to `examples/typescript` and run:
+
    **Recommended: Build only the packages needed for FastSet demo:**
    ```bash
    pnpm turbo build --filter=x402 --filter=x402-next --filter=next-example --filter=facilitator-example
+   ```
+
+   Then to `typescript/packages/x402` from the root of the repo and run:
+
+   ```bash
+   pnp build:paywall
    ```
    
 ### Step 2: Set Up the Facilitator Server
