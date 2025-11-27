@@ -33,72 +33,105 @@ Before you begin, ensure you have the following installed:
 
 ### Step 1: Clone and Install Dependencies
 
-1. Navigate to the project root directory:
-    ```bash
-    cd fastset-x402-demo
-    ```
+Navigate to the project root directory:
 
-2. Navigate to the TypeScript examples directory and install all dependencies:
-    ```bash
-    cd examples/typescript
-    pnpm install
-    ```
+```bash
+cd fastset-x402-demo
+```
 
-3. Build the required packages. The `next-advanced` example may fail to build, but that's okay, you only need the core packages for the FastSet demo.
+Navigate to the TypeScript examples directory:
 
-   Go to `examples/typescript` and run:
+```bash
+cd examples/typescript
+```
 
-   **Recommended: Build only the packages needed for FastSet demo:**
-   ```bash
-   pnpm turbo build --filter=x402 --filter=x402-next --filter=next-example --filter=facilitator-example
-   ```
+Install all dependencies:
 
-   Then, to `typescript/packages/x402` from the root of the repo and run:
+```bash
+pnpm install
+```
 
-   ```bash
-   pnp build:paywall
-   ```
+Build the required packages, you only need the core packages for the FastSet demo.
+
+Go to `examples/typescript` and run:
+
+```bash
+cd examples/typescript
+```
+
+Build only the packages needed for FastSet demo:**
+
+```bash
+pnpm turbo build --filter=x402 --filter=x402-next --filter=next-example --filter=facilitator-example
+```
+
+Then, go to `typescript/packages/x402`:
+
+```bash
+cd ../../typescript/packages/x402 
+```
+
+And run:
+
+```bash
+pnp build:paywall
+```
    
 ### Step 2: Set Up the Facilitator Server
 
 The facilitator server handles payment verification for FastSet payments. FastSet support is enabled by default and doesn't require a private key.
 
-1. Navigate to the facilitator directory:
-    ```bash
-    cd facilitator
-    ```
+Navigate to the facilitator directory:
 
-2. Copy the environment template and configure if needed:
-    ```bash
-    cp .env-local .env
-    ```
+```bash
+cd ../../../examples/typescript/facilitator 
+```
 
-3. The facilitator supports FastSet by default. Your `.env` file should look like this:
-    ```bash
-    # FastSet support is enabled by default (no private key needed)
-    # ENABLE_FASTSET=true
-    PORT=3002
-    ```
+Copy the environment template and configure if needed:
 
-    **Note:** If you also want to support EVM or Solana networks, you can add:
+```bash
+cp .env-local .env
+```
 
-    ```bash
-    EVM_PRIVATE_KEY=0xYourPrivateKey  # Optional, for EVM networks
-    SVM_PRIVATE_KEY=base58EncodedSolanaPrivateKey  # Optional, for Solana networks
-    ```
+The facilitator supports FastSet by default. Your `.env` file should look like this:
 
-4. Start the facilitator server:
-    ```bash
-    pnpm dev
-    ```
+```bash
+# FastSet support is enabled by default (no private key needed)
+# ENABLE_FASTSET=true
+PORT=3002
+```
+
+**Note:** If you also want to support EVM or Solana networks, you can add:
+
+```bash
+EVM_PRIVATE_KEY=0xYourPrivateKey  # Optional, for EVM networks
+SVM_PRIVATE_KEY=base58EncodedSolanaPrivateKey  # Optional, for Solana networks
+```
+
+Start the facilitator server:
+
+```bash
+pnpm dev
+```
 
 The facilitator will start on `http://localhost:3002`. Keep this terminal running.
 
 ### Step 3: Run the Next.js Demo
 
+Open a new terminal in the project root and go to the facilitator location:
+
 ```bash
 cd examples/typescript/fullstack/next
+```
+
+Prepare environment variables:
+
+```bash
 cp .env.sample .env.local
+```
+
+Then run the facilitator:
+```
 pnpm dev
 ```
 
@@ -110,25 +143,25 @@ Open your Chrome, Brave, or Edge browser and install the [FastSet Wallet Extensi
 
 ### Step 5: Test the Payment Flow
 
-1. **Open the Protected Route:**
-   - Navigate to `http://localhost:3000/protected` in your browser
-   - You should see a payment paywall requiring $100 (as configured in the middleware)
+**Open the Protected Route:**
+- Navigate to `http://localhost:3000/protected` in your browser
+- You should see a payment paywall requiring $100 (as configured in the middleware)
 
-2. **Connect Your Wallet:**
-   - Click the "Connect FastSet Wallet" button
-   - Approve the connection request in your FastSet wallet extension
+**Connect Your Wallet:**
+- Click the "Connect FastSet Wallet" button
+- Approve the connection request in your FastSet wallet extension
 
-3. **Make a Payment:**
-   - Once connected, click "Pay Now"
-   - Review the payment details in the wallet pop-up
-   - Approve the payment in your FastSet wallet
-   - The payment will be executed immediately (FastSet uses sign-and-send)
+**Make a Payment:**
+- Once connected, click "Pay Now"
+- Review the payment details in the wallet pop-up
+- Approve the payment in your FastSet wallet
+- The payment will be executed immediately (FastSet uses sign-and-send)
 
-4. **Access Protected Content:**
-   - After successful payment verification, you should see the protected content
-   - The payment certificate is verified by the facilitator server
+**Access Protected Content:**
+- After successful payment verification, you should see the protected content
+- The payment certificate is verified by the facilitator server
 
-### Implementation Details
+## Implementation Details
 
 In order to add FastSet support, we added the following:
 
