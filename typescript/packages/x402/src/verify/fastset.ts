@@ -139,8 +139,8 @@ export async function verify(
       };
     }
 
-    // Create FastSet RPC client and check account
-    const fastSetRpc = createFastSetRpc("https://proxy.fastset.xyz/");
+    // Create FastSet RPC client and check account (using latest API endpoint)
+    const fastSetRpc = createFastSetRpc("https://api.fast.xyz/proxy");
 
     try {
       console.log("[DEBUG-FASTSET-VERIFY] Calling FastSet RPC getAccountInfo", {

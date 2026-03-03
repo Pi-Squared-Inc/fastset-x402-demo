@@ -1,6 +1,8 @@
 import { NextFunction, Request, Response } from "express";
 import { Address, getAddress } from "viem";
 import { Address as SolanaAddress } from "@solana/kit";
+import { fastset } from "x402/types";
+type FastSetAddress = string; // FastSet addresses start with "set"
 import { exact } from "x402/schemes";
 import {
   computeRoutePatterns,
@@ -22,6 +24,7 @@ import {
   settleResponseHeader,
   SupportedEVMNetworks,
   SupportedSVMNetworks,
+  SupportedFastSetNetworks,
 } from "x402/types";
 import { useFacilitator } from "x402/verify";
 
@@ -73,7 +76,7 @@ import { useFacilitator } from "x402/verify";
  * ```
  */
 export function paymentMiddleware(
-  payTo: Address | SolanaAddress,
+  payTo: Address | SolanaAddress | FastSetAddress,
   routes: RoutesConfig,
   facilitator?: FacilitatorConfig,
   paywall?: PaywallConfig,
@@ -187,6 +190,37 @@ export function paymentMiddleware(
         extra: {
           feePayer,
         },
+      });
+    }
+
+    // fastset networks
+    else if (SupportedFastSetNetworks.includes(network)) {
+      // Validate FastSet address format
+      if (!fastset.isValidFastSetAddress(payTo)) {
+        throw new Error(`Invalid FastSet address format: ${payTo}. Expected address starting with 'set'.`);
+      }
+
+      paymentRequirements.push({
+        scheme: "exact",
+        network,
+        maxAmountRequired,
+        resource: resourceUrl,
+        description: description ?? "",
+        mimeType: mimeType ?? "",
+        payTo: payTo,
+        maxTimeoutSeconds: maxTimeoutSeconds ?? 60,
+        asset: asset.address, // fastUSDC token ID
+        outputSchema: {
+          input: {
+            type: "http",
+            method: req.method.toUpperCase(),
+            discoverable: discoverable ?? true,
+            ...inputSchema,
+          },
+          output: outputSchema,
+        },
+        // FastSet doesn't need extra fields like EIP-712 or feePayer
+        extra: undefined,
       });
     } else {
       throw new Error(`Unsupported network: ${network}`);

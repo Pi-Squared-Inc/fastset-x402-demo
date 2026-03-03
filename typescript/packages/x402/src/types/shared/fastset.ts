@@ -103,10 +103,10 @@ export interface FastSetConnectedClient {
  * Creates a FastSet RPC client for the specified network
  */
 export function createFastSetConnectedClient(network: string): FastSetConnectedClient {
-  // Map network to RPC URL
+  // Map network to RPC URL - using the latest FastSet API endpoint
   const rpcUrl = network === "fastset-devnet" 
-    ? "https://proxy.fastset.xyz/"
-    : "https://proxy.fastset.xyz/"; // Default to devnet for now
+    ? "https://api.fast.xyz/proxy"
+    : "https://api.fast.xyz/proxy"; // Default to devnet for now
 
   return {
     network,

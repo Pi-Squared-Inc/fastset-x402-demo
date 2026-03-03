@@ -122,11 +122,12 @@ export function findMatchingRoute(
  * @returns The default asset
  */
 export function getDefaultAsset(network: Network) {
-  // FastSet networks use native SET token
+  // FastSet networks use fastUSDC token
   if (isFastSetNetwork(network)) {
     return {
-      address: "0xfa575e7000000000000000000000000000000000000000000000000000000000" as Address,
-      decimals: 0,
+      // fastUSDC token ID (base64: HnRJAAIRgrKTU4u2aFt33wleNRNk1VACFhTOkMirngo=)
+      address: "HnRJAAIRgrKTU4u2aFt33wleNRNk1VACFhTOkMirngo=" as Address,
+      decimals: 6, // USDC has 6 decimals
       eip712: undefined, // FastSet doesn't use EIP-712
     };
   }
