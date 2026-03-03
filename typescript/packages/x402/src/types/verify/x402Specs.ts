@@ -68,7 +68,8 @@ const mixedAddressOrSvmAddress = z
   .string()
   .regex(MixedAddressRegex)
   .or(z.string().regex(SvmAddressRegex))
-  .or(z.string().regex(FastAddressRegex));
+  .or(z.string().regex(FastAddressRegex))
+  .or(z.string().regex(Base64EncodedRegex)); // FastSet token IDs are base64-encoded
 export const PaymentRequirementsSchema = z.object({
   scheme: z.enum(schemes),
   network: NetworkSchema,

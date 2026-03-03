@@ -7,8 +7,9 @@ const FastSetTransactionCertificateSchema = z.object({
       sender: z.array(z.number()),
       recipient: z.array(z.number()),
       nonce: z.number(),
-      timestamp_nanos: z.number(),
+      timestamp_nanos: z.union([z.number(), z.bigint()]), // Can be large (nanoseconds since epoch)
       claim: z.any(), // Can be TokenTransfer or other claim types
+      archival: z.boolean().optional(), // Optional archival flag
     }),
     signature: z.object({
       Signature: z.array(z.number()), // Wrapped in a Signature object

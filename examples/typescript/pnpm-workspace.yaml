@@ -8,4 +8,5 @@ packages:
   - "mcp-embedded-wallet"
   - "mcp"
   - "discovery"
+  - "fastset-merchant"
   - "../../typescript/packages/*"

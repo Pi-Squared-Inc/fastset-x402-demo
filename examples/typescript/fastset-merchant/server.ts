@@ -18,18 +18,18 @@ app.use(
   paymentMiddleware(
     MERCHANT_ADDRESS,
     {
-      // Protect the /api/service endpoint
+      // Protect the /api/service endpoint - 0.1 USDC per call
       "GET /api/service": {
-        price: "$0.01", // 1 cent in fastUSDC
+        price: "$0.10", // 10 cents in USDC (0.1 USDC)
         network: "fastset-devnet",
         config: {
-          description: "AI Agent Premium Service",
+          description: "AI Agent Premium Service - Pay per API call",
           mimeType: "application/json",
         },
       },
       // Protect all premium content
       "/api/premium/*": {
-        price: "$0.05", // 5 cents in fastUSDC
+        price: "$0.10", // 10 cents in USDC (0.1 USDC)
         network: "fastset-devnet",
         config: {
           description: "Premium Content Access",
@@ -81,7 +81,7 @@ app.listen(PORT, () => {
   console.log(`Merchant address:  ${MERCHANT_ADDRESS}`);
   console.log(`Facilitator URL:   ${FACILITATOR_URL}`);
   console.log(`\nProtected endpoints:`);
-  console.log(`  GET /api/service      - $0.01 fastUSDC`);
-  console.log(`  GET /api/premium/*    - $0.05 fastUSDC`);
+  console.log(`  GET /api/service      - $0.10 USDC`);
+  console.log(`  GET /api/premium/*    - $0.10 USDC`);
   console.log(`\n📡 Ready to accept x402 payments!`);
 });

@@ -197,7 +197,7 @@ export function paymentMiddleware(
     else if (SupportedFastSetNetworks.includes(network)) {
       // Validate FastSet address format
       if (!fastset.isValidFastSetAddress(payTo)) {
-        throw new Error(`Invalid FastSet address format: ${payTo}. Expected address starting with 'set'.`);
+        throw new Error(`Invalid Fast network address format: ${payTo}. Expected address starting with 'fast1'.`);
       }
 
       paymentRequirements.push({
