@@ -3,7 +3,7 @@
  */
 
 export interface FastSetAccountInfo {
-  address: string; // FastSet address format (starts with "set")
+  address: string; // Fast network address format (starts with "fast1")
   publicKey: string;
 }
 
@@ -64,11 +64,11 @@ export interface FastSetConnectOptions {
 
 export type FastSetNetworkId = "devnet"; // Only devnet for now
 export type FastSetAmount = string; // Hex string like "0x64"
-export type FastSetAddress = string; // Format: "set..."
+export type FastSetAddress = string; // Format: "fast1..." (bech32m encoded)
 export type FastSetTokenId = string;
 
 export function isValidFastSetAddress(address: string): address is FastSetAddress {
-  return typeof address === "string" && address.startsWith("set");
+  return typeof address === "string" && address.startsWith("fast1");
 }
 
 export function toHexAmount(amount: bigint): FastSetAmount {

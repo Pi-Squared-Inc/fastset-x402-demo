@@ -7,8 +7,8 @@ config();
 const PORT = process.env.PORT || 3001;
 const FACILITATOR_URL = process.env.FACILITATOR_URL || "http://localhost:3002";
 
-// Merchant's FastSet address (receives payments)
-const MERCHANT_ADDRESS = process.env.MERCHANT_ADDRESS || "set16h3jkg5sv9ng2hwcjz08w3x2qvhxnzk5sw5awkqkgwrg3kv4hd7qkttx8g";
+// Merchant's Fast network address (receives payments)
+const MERCHANT_ADDRESS = process.env.MERCHANT_ADDRESS || "fast16h3jkg5sv9ng2hwcjz08w3x2qvhxnzk5sw5awkqkgwrg3kv4hd7qylc73u";
 
 const app = express();
 app.use(express.json());
