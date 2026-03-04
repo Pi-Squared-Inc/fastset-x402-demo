@@ -10,6 +10,14 @@ export const config: Record<string, ChainConfig> = {
     usdcAddress: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
     usdcName: "USD Coin",
   },
+  "421614": {
+    usdcAddress: "0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d",
+    usdcName: "USD Coin",  // Fixed: must match contract's name() for EIP-712
+  },
+  "42161": {
+    usdcAddress: "0xaf88d065e77c8cC2239327C5EDb3A432268e5831",
+    usdcName: "USD Coin",
+  },
   "43113": {
     usdcAddress: "0x5425890298aed601595a70AB815c96711a31Bc65",
     usdcName: "USD Coin",

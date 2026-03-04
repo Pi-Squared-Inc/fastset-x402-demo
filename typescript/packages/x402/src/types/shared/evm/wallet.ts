@@ -14,6 +14,8 @@ import {
   baseSepolia,
   avalancheFuji,
   base,
+  arbitrumSepolia,
+  arbitrum,
   sei,
   seiTestnet,
   polygon,
@@ -211,6 +213,10 @@ export function getChainFromNetwork(network: string | undefined): Chain {
       return base;
     case "base-sepolia":
       return baseSepolia;
+    case "arbitrum-sepolia":
+      return arbitrumSepolia;
+    case "arbitrum":
+      return arbitrum;
     case "avalanche":
       return avalanche;
     case "avalanche-fuji":
